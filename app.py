@@ -254,9 +254,17 @@ if preview_df is not None:
         help="윈도우 단위의 분포 변화가 클수록 높은 이상 점수를 줍니다.")
 
     with st.sidebar.expander("🔬 고급 설정 (Scorer 세부조정)", expanded=False):
+        estimated_test_len = int(len(preview_df) * (1 - train_ratio))
+        max_window = max(2, estimated_test_len - int(lags) - 1)
+        max_window = max(2, min(500, max_window))
+        safe_default_window = max(2, min(12, max_window))
         window = st.number_input(
-            "Scorer 윈도우 (KMeans/Wasserstein/PyOD)", 2, 500, 24, 1,
-            help="분포·군집 기반 Scorer가 한 번에 비교할 과거 시점 수입니다.")
+            "Scorer 윈도우 (KMeans/Wasserstein/PyOD)",
+            min_value=2,
+            max_value=max_window,
+            value=safe_default_window,
+            step=1,
+            help="Scorer가 한 번에 비교할 시점 수입니다. 데이터 길이보다 크면 오류가 나므로 자동으로 제한됩니다.")
         st.caption("`PyODScorer`로 PyOD 비지도 탐지기를 Darts Scorer로 감싼 것. "
                   "예측오차가 아니라 윈도우 내 분포 자체로 이상을 판단해 보완적.")
         if not is_pyod_available():

@@ -222,6 +222,8 @@ def run_pipeline(df: pd.DataFrame, cfg: PipelineConfig) -> dict:
         test_labels = labels.split_before(cfg.train_ratio)[1]
 
     # 3) 예측 모델 (강의: SKLearnModel with lags) + Scorer 결합 = ForecastingAnomalyModel
+    score_target_len = max(2, len(test) - cfg.lags)
+    cfg.scorers.window = max(2, min(int(cfg.scorers.window), score_target_len - 1))
     scorers, scorer_names, pyod_skipped = _build_scorers(cfg.scorers)
     fmodel = SKLearnModel(lags=cfg.lags, output_chunk_length=1)
     anomaly_model = ForecastingAnomalyModel(model=fmodel, scorer=scorers)
